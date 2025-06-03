@@ -1,0 +1,184 @@
+{% extends "sdcmisapp/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<br>
+  <h3> Welcome {{user|upper}} </h3>
+
+  {% if current_date %}
+    <div class="alert alert-info" role="alert">
+        Today's Date: <strong>{{ current_date|date:"F d, Y" }}</strong>
+    </div>
+    {% endif %}
+  
+  <hr>
+
+  
+
+        
+ <div class="row">
+
+                        <!-- Total (IER) Card Example -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Total (IER)</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_ier_count|default:"0" }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Completed (IER) Card Example -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Completed (IER)</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_ier_count|default:"0" }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tasks Card Example -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tasks
+                                            </div>
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ active_tasks_count|default:"0" }}</div>
+                                                </div>
+                                                
+                                                <div class="col">
+                                                    <div class="progress progress-sm mr-2">
+                                                        <div class="progress-bar bg-info" role="progressbar"
+                                                            style="width: {{ active_tasks_percentage|default:0 }}%" aria-valuenow="{{ active_tasks_percentage|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pending Requests Card Example -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Pending Requests</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_routing_count|default:"0" }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+    
+    
+
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <a id="btn-search" class="btn btn-info btn-lg" href="{% url 'iec_addrecord' %}">Add Initial Evaluation of Complaint</a>
+        &nbsp;
+
+
+        <!-- Inside your loop of records in dashboard.html -->
+
+
+    </div>
+
+
+
+
+<div>                      
+    <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Date Recieved</th>
+        <th scope="col">Referece No</th>
+        <th scope="col">Complainant</th>
+        <th scope="col">Respondent</th>
+        <th scope="col">Remarks</th>
+        <th scope="col">Status</th>
+        <th scope="col">Days Remaining</th>
+        <th scope="col">Details</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+        {% for iec_record in records %}
+        <tr>
+            <td>{{iec_record.id}}</td>
+            <td>{{iec_record.date_received}}</td>
+            <td>{{iec_record.iec_ref}}</td>
+            <td>{{iec_record.complainant}}</td>
+            <td>{{iec_record.respondent}}</td>
+            <td>{{iec_record.remarks}}</td>
+            <td>{{ iec_record.get_status_display }}</td>
+            <td>
+              {% if iec_record.days_remaining is not None %}
+                {% if iec_record.days_remaining < 0 %}
+                  <span class="text-danger">Overdue by {{ iec_record.overdue_days_count }} day{{ iec_record.overdue_days_count|pluralize }}</span>
+                {% elif iec_record.days_remaining == 0 %}
+                  <span class="text-warning">Due Today</span>
+                {% else %}
+                  {{ iec_record.days_remaining }} day{{ iec_record.days_remaining|pluralize }}
+                {% endif %}
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            <td> <a href = "{% url 'view_iec' iec_record.id %}"> View Record </a> </td>
+            <td>
+              {% if iec_record.can_acknowledge_and_route %}
+                <a href="{% url 'acknowledge_and_route' iec_record.id %}" class="btn btn-sm btn-info">Submit Report</a>
+              {% endif %}
+              {% if iec_record.can_submit_notice_pci %}
+                <a href="{% url 'submit_notice_pci' iec_record.id %}" class="btn btn-sm btn-warning ms-1">Submit Notice of PCI</a>
+              {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table> 
+</div> 
+ 
+
+
+    
+
+
+{% endblock content %}

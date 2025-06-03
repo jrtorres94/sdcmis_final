@@ -1,0 +1,32 @@
+{% extends "sdcmisapp/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content  %}
+
+    <div class="">
+        <br>
+        <h4> Update Record </h4>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            {{ form|crispy}}
+            
+            <br>
+            <button type="submit" class="btn btn-info">update</button>
+         
+        </form>
+
+        <br>
+
+     
+
+        {% comment %} <a href="{% url 'view' Record.id %}" class="btn btn-primary">Update Record</a> {% endcomment %}
+
+        {% comment %} <p>If you already have an account, <a href="{% url 'view' record.id %}">login here</a>.</p> {% endcomment %}
+
+    </div>
+
+{% endblock %}

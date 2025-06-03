@@ -1,0 +1,42 @@
+{% extends "sdcmisapp/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content  %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm d-flex flex-column" style="max-height: 85vh;">
+            {% if registration_done %}
+                <div class="card-header">
+                    <h4 class="text-center my-2">Registration Successful!</h4>
+                </div>
+                <div class="card-body text-center">
+                    <p>Thank you! You will be able to log in once your account is approved by an administrator.</p>
+                    <p class="mt-4">
+                        <a href="{% url 'login' %}" class="btn btn-primary">Proceed to Login Page</a>
+                    </p>
+                </div>
+            {% else %}
+                <div class="card-header">
+                    <h4 class="text-center my-2">Sign-up to get Started with SDCMIS</h4>
+                </div>
+                <div class="card-body overflow-auto"> 
+                    <form method="post" autocomplete="off" id="registrationForm">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" form="registrationForm">Register</button>
+                    </div>
+                    <hr class="my-3">
+                    <p class="text-center mb-0">
+                        If you already have an account, <a href="{% url 'login' %}">login here</a>.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock  %}

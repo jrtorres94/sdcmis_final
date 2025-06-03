@@ -1,0 +1,29 @@
+{% extends "sdcmisapp/base.html" %}
+
+{% block content  %}
+
+    <br>
+    <p> ID: {{iec_records.iec_ref}} </p>
+
+        <div class ="card">
+            
+            <div class="card-body">
+
+                <p> <strong> date_received: </strong> {{iec_records.date_received}} </p> 
+                <p> <strong> complainant: </strong> {{iec_records.complainant}} </p>
+                <p> <strong> respondent: </strong> {{iec_records.respondent}} </p>
+                <p> <strong> charge: </strong> {{iec_records.charge}} </p>
+                <p> <strong> remarks: </strong> {{iec_records.remarks}} </p>
+
+            </div>    
+
+        </div>    
+        <br>
+
+        <a class="btn btn-primary" href = "{% url 'dashboard' %}"> Return </a> 
+        &nbsp;
+        <a class="btn btn-info" href = "{% url 'update_iec' iec_records.id %}"> Update Record </a>
+        &nbsp;
+        <a class="btn btn-danger" href = "{% url 'delete_iec' iec_records.id %}"> Delete Record </a> 
+
+{% endblock %}  

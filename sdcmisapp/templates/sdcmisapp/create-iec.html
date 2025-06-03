@@ -1,0 +1,39 @@
+{% extends "sdcmisapp/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-7"> {# Adjusted column width for potentially wider forms #}
+        <div class="card shadow-sm d-flex flex-column" style="max-height: 85vh;"> 
+            {% if record_created_successfully %}
+                <div class="card-header">
+                    <h4 class="text-center my-2">Record Created Successfully!</h4>
+                </div>
+                <div class="card-body text-center">
+                    <p>The IEC Record with Reference Number: <strong>{{ new_record_ref }}</strong> has been successfully created.</p>
+                    <p class="mt-4">
+                        <a href="{% url 'iec_addrecord' %}" class="btn btn-info">Add Another Record</a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary ms-2">Go to Dashboard</a>
+                    </p>
+                </div>
+            {% else %}
+                <div class="card-header">
+                    <h4 class="text-center my-2">Create New IEC Record</h4>
+                </div>
+                <div class="card-body overflow-auto">
+                    <form method="post" autocomplete="off" id="addIecRecordForm">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <!-- Button moved to card-footer -->
+                    </form>
+                </div>
+                <div class="card-footer text-end"> {# Align button to the right for a common form pattern #}
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary" form="addIecRecordForm">Create Record</button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

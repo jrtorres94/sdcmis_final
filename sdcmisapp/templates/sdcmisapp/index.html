@@ -1,0 +1,20 @@
+{% extends "sdcmisapp/base.html" %}
+
+{% block content %}
+
+
+            {# You can use Bootstrap margin utilities like mt-3, mt-4, or mt-5 for top spacing if needed #}
+            <div class="home text-center py-5"> {# Added text-center and padding for example #}
+                <h1>SDMIS</h1>
+                <p>To get started, please register for an account.</p>
+                <a href="{% url 'register' %}" class="btn btn-primary">Sign Up</a>
+            </div>
+            
+            
+   
+
+    <footer>
+        <p>&copy; All rights reserved.</p>
+    </footer>
+
+     {% endblock %}

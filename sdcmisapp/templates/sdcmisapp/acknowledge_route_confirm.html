@@ -1,0 +1,118 @@
+{% extends 'sdcmisapp/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %} <!-- If you decide to use crispy-forms -->
+
+{% block title %}Acknowledge & Route IEC Record{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Acknowledge & Route IEC Record: {{ record.iec_ref }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        You are about to submit the Initial Evaluation Report details for IEC Record
+                        <strong>{{ record.iec_ref }}</strong> (Complainant: {{ record.complainant }})
+                        and route it to the next step.
+                    </p>
+                    <hr>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if not eligible_users_exist and request.method == 'GET' %}
+                        <div class="alert alert-warning" role="alert">
+                            <strong>Warning:</strong> There are no other active IER or PCI Investigators in your location to route this task to.
+                            You can still submit the report details, but routing will not be possible until eligible users are available.
+                        </div>
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <h5>Initial Evaluation Report Details:</h5>
+                        
+                        <!-- Example of rendering fields individually for more control -->
+                        <!-- Or use {{ form|crispy }} if you have django-crispy-forms installed and configured -->
+
+                        <div class="mb-3 row">
+                            <label class="col-sm-4 col-form-label fw-bold">Submitted By:</label>
+                            <div class="col-sm-8">
+                                <p class="form-control-plaintext">{{ request.user.get_full_name|default:request.user.username }}</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label class="col-sm-4 col-form-label fw-bold">Submission Date:</label>
+                            <div class="col-sm-8">
+                                <p class="form-control-plaintext">{% now "F j, Y" %}</p> <!-- Example: August 23, 2023 -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.director_approval_date.id_for_label }}" class="form-label">{{ form.director_approval_date.label }}</label>
+                            {{ form.director_approval_date }}
+                            {% if form.director_approval_date.help_text %}
+                                <small class="form-text text-muted">{{ form.director_approval_date.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.director_approval_date.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.submission_remarks.id_for_label }}" class="form-label">{{ form.submission_remarks.label }}</label>
+                            {{ form.submission_remarks }}
+                            {% if form.submission_remarks.help_text %}
+                                <small class="form-text text-muted">{{ form.submission_remarks.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.submission_remarks.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h5>Route Task:</h5>
+
+                        {% if eligible_users_exist %}
+                            <div class="mb-3">
+                                <label for="{{ form.assign_to.id_for_label }}" class="form-label">{{ form.assign_to.label }}</label>
+                                {{ form.assign_to }}
+                                {% if form.assign_to.help_text %}
+                                    <small class="form-text text-muted">{{ form.assign_to.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.assign_to.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted"><em>No eligible users available for routing in your location.</em></p>
+                        {% endif %}
+                        
+                        <div class="mt-4 d-flex justify-content-between">
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times-circle me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success" {% if not eligible_users_exist %}disabled title="Cannot route without eligible users"{% endif %}>
+                                <i class="fas fa-paper-plane me-1"></i> Submit Report & Route Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-muted small">
+                    Please review all details carefully before submission.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
