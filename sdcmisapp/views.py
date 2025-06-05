@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 
-from .forms import CreateUserForm, Loginform, IEC_AddForm, IEC_UpdateForm, RouteTaskForm, NoticePCISubmissionForm
+from .forms import CreateUserForm, Loginform, IEC_AddForm, IEC_UpdateForm, RouteTaskForm, NoticePCISubmissionForm, CommentCounterAffidavitSubmissionForm
 from django.contrib.auth.models import auth, Group
 from django.contrib.auth import authenticate
 
@@ -137,8 +137,18 @@ def dashboard(request):
            record.assigned_to == user: # Assuming index 1 is 'notice_pci'
             record.can_submit_notice_pci = True
 
-        # print(f"DEBUG: Result -> record.can_acknowledge_and_route: {record.can_acknowledge_and_route}") # DEBUG REMOVED
-        # print(f"--- END DEBUG Record ID: {record.id} ---\n") # DEBUG REMOVED
+        # Determine if the current user can submit Comment/Counter Affidavit
+        record.can_submit_comment_affidavit = False
+        expected_status_key_for_comment = "N/A (Workflow too short)"
+        if len(CASE_WORKFLOW_STEPS) > 2:
+            expected_status_key_for_comment = CASE_WORKFLOW_STEPS[2].key
+
+        condition_workflow_length = len(CASE_WORKFLOW_STEPS) > 2
+        condition_status_match = record.status == expected_status_key_for_comment if condition_workflow_length else False
+        condition_assignment_match = record.assigned_to == user
+
+        if condition_workflow_length and condition_status_match and condition_assignment_match:
+            record.can_submit_comment_affidavit = True
         # --- END DETAILED DEBUGGING ---
         processed_records.append(record)
     
@@ -442,10 +452,10 @@ def submit_notice_pci(request, pk):
                 # iec_record.assigned_to remains the same for now for the PCI investigator.
                 iec_record.save()
                 messages.success(request, f"Notice of Pre-Charge Investigation for {iec_record.iec_ref} submitted. Case moved to '{next_workflow_step.description}'.")
-                return redirect('view_iec', pk=iec_record.id)
+                return redirect('dashboard') # Or your desired success page
             else:
                 messages.error(request, "Workflow next step ('Comment/Counter Affidavit') is not configured.")
-                return redirect('view_iec', pk=iec_record.id)
+                return redirect('dashboard') # Or an appropriate error/info page
         else:
             messages.error(request, "Please correct the errors below.")
     else: # GET request
@@ -458,3 +468,72 @@ def submit_notice_pci(request, pk):
         'current_step_description': current_step_config.description
     }
     return render(request, 'sdcmisapp/submit_notice_pci.html', context)
+
+
+@login_required(login_url='login')
+def submit_comment_counter_affidavit(request, pk):
+    iec_record = get_object_or_404(iec_records, id=pk)
+    user = request.user
+
+    try:
+        pci_record = PreChargeInvestigation.objects.get(iec_record=iec_record)
+    except PreChargeInvestigation.DoesNotExist:
+        messages.error(request, f"Pre-Charge Investigation details not found for {iec_record.iec_ref}. Please contact admin.")
+        return redirect('view_iec', pk=iec_record.id)
+
+    # Expected status for this action: 'comment_counter_affidavit' (index 2 of CASE_WORKFLOW_STEPS)
+    if len(CASE_WORKFLOW_STEPS) <= 2: # Current step is index 2
+        messages.error(request, "Workflow 'Comment/Counter Affidavit' step is not configured correctly.")
+        return redirect('view_iec', pk=iec_record.id)
+    
+    current_workflow_step_index = 2
+    expected_status_key = CASE_WORKFLOW_STEPS[current_workflow_step_index].key
+    current_step_config = get_task_step_by_key(expected_status_key)
+
+    if not current_step_config:
+        messages.error(request, "Workflow 'Comment/Counter Affidavit' step configuration is missing.")
+        return redirect('view_iec', pk=iec_record.id)
+
+    # Authorization checks
+    if iec_record.status != expected_status_key:
+        messages.error(request, f"Record {iec_record.iec_ref} (current status: '{iec_record.get_status_display()}') is not in the expected state ('{current_step_config.description}') for submitting the Comment/Counter Affidavit.")
+        return redirect('view_iec', pk=iec_record.id)
+
+    if iec_record.assigned_to != user:
+        messages.error(request, f"This task ('{current_step_config.description}') for {iec_record.iec_ref} is not assigned to you. It is assigned to {iec_record.assigned_to.username if iec_record.assigned_to else 'N/A'}.")
+        return redirect('view_iec', pk=iec_record.id)
+
+    if request.method == "POST":
+        form = CommentCounterAffidavitSubmissionForm(request.POST, instance=pci_record)
+        if form.is_valid():
+            updated_pci_record = form.save() # Save changes to pci_record
+
+            # Transition to the next step: 'pci_report_draft_charge' (index 3)
+            if len(CASE_WORKFLOW_STEPS) > (current_workflow_step_index + 1):
+                next_workflow_step_index = current_workflow_step_index + 1
+                next_workflow_step = CASE_WORKFLOW_STEPS[next_workflow_step_index]
+                
+                iec_record.status = next_workflow_step.key
+                if updated_pci_record.comment_counter_affidavit_received_on:
+                    iec_record.due_date = updated_pci_record.comment_counter_affidavit_received_on + timedelta(days=next_workflow_step.days_to_complete)
+                else: # If no date received, base due date on today
+                    iec_record.due_date = date.today() + timedelta(days=next_workflow_step.days_to_complete)
+                
+                iec_record.save()
+                messages.success(request, f"Comment/Counter Affidavit for {iec_record.iec_ref} submitted. Case moved to '{next_workflow_step.description}'.")
+                return redirect('dashboard')
+            else:
+                messages.error(request, f"Workflow next step after '{current_step_config.description}' is not configured.")
+                return redirect('dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else: # GET request
+        form = CommentCounterAffidavitSubmissionForm(instance=pci_record)
+
+    context = {
+        'form': form,
+        'iec_record': iec_record,
+        'pci_record': pci_record,
+        'current_step_description': current_step_config.description
+    }
+    return render(request, 'sdcmisapp/submit_comment_counter_affidavit.html', context)

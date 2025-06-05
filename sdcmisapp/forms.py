@@ -156,3 +156,29 @@ class NoticePCISubmissionForm(forms.ModelForm):
         self.fields['precharge_no'].required = True # Assuming this should be confirmed/entered here
         self.fields['notice_pci_respondent_received_on'].required = False
         self.fields['notice_pci_remarks'].required = False
+
+
+class CommentCounterAffidavitSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = PreChargeInvestigation
+        fields = [
+            'comment_counter_affidavit_received_on',
+            # 'comment_counter_affidavit_received_from', # Removed this line
+            'comment_counter_affidavit_remarks'
+        ]
+        widgets = {
+            'comment_counter_affidavit_received_on': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            # 'comment_counter_affidavit_received_from': forms.TextInput(attrs={'class': 'form-control'}), # Removed this line
+            'comment_counter_affidavit_remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'comment_counter_affidavit_received_on': "Date Comment/Counter Affidavit Received",
+            # 'comment_counter_affidavit_received_from': "Comment/Counter Affidavit Received From", # Removed this line
+            'comment_counter_affidavit_remarks': "Remarks for Comment/Counter Affidavit Submission",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['comment_counter_affidavit_received_on'].required = False # Optional, in case no comment is filed
+        # self.fields['comment_counter_affidavit_received_from'].required = False # Removed this line
+        self.fields['comment_counter_affidavit_remarks'].required = False

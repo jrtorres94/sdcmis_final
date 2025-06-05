@@ -1,0 +1,55 @@
+{% extends 'sdcmisapp/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    Submit Comment/Counter Affidavit - {{ iec_record.iec_ref }}
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Submit Comment/Counter Affidavit for IEC Ref: {{ iec_record.iec_ref }}</h4>
+                    <p class="card-category">Current Step: {{ current_step_description }}</p>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Complainant:</label>
+                            <input type="text" class="form-control" value="{{ iec_record.complainant }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Respondent:</label>
+                            <input type="text" class="form-control" value="{{ iec_record.respondent }}" readonly>
+                        </div>
+                         <div class="mb-3">
+                            <label class="form-label">Pre-Charge Investigation No.:</label>
+                            <input type="text" class="form-control" value="{{ pci_record.precharge_no|default:"Not yet set" }}" readonly>
+                        </div>
+                        <hr>
+                        <h5>Comment/Counter Affidavit Details:</h5>
+                        {{ form|crispy }}
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Submit Comment/Counter Affidavit</button>
+                            <a href="{% url 'view_iec' pk=iec_record.id %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -27,6 +27,8 @@ urlpatterns = [
     path('iec_record/<int:pk>/acknowledge_route/', views.acknowledge_and_route, name='acknowledge_and_route'),
     
     path('iec_record/<int:pk>/submit_notice_pci/', views.submit_notice_pci, name='submit_notice_pci'),
+    
+    path('iec_record/<int:pk>/submit_comment_affidavit/', views.submit_comment_counter_affidavit, name='submit_comment_affidavit'),
 
     # path('search/', views.search_record, name='search'),
     

@@ -169,6 +169,9 @@
               {% if iec_record.can_submit_notice_pci %}
                 <a href="{% url 'submit_notice_pci' iec_record.id %}" class="btn btn-sm btn-warning ms-1">Submit Notice of PCI</a>
               {% endif %}
+              {% if iec_record.can_submit_comment_affidavit %}
+                <a href="{% url 'submit_comment_affidavit' pk=iec_record.id %}" class="btn btn-sm btn-info ms-1" title="Submit Comment/Counter Affidavit">Submit Comment/Affidavit</a>
+              {% endif %}
             </td>
         </tr>
         {% endfor %}
